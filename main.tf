@@ -1,5 +1,3 @@
-# Copyright (c) HashiCorp, Inc.
-
 terraform {
   required_providers {
     aws = {
@@ -18,8 +16,7 @@ resource "aws_vpc" "hashicat" {
   enable_dns_hostnames = true
 
   tags = {
-    name        = "${var.prefix}-vpc-${var.region}"
-    environment = "Production"
+    name = "${var.prefix}-vpc-${var.region}"
   }
 }
 
@@ -128,19 +125,24 @@ resource "aws_instance" "hashicat" {
   vpc_security_group_ids      = [aws_security_group.hashicat.id]
 
   tags = {
-    Name = "${var.prefix}-hashicat-instance"
+    Name        = "${var.prefix}-hashicat-instance"
+    Environment = "prod"
+    Department  = "Hashicat Social"
   }
 }
 
-# We're using a little trick here so we can run the provisioner without destroying the VM. Do not do this in production.
+# We're using a little trick here so we can run the provisioner without
+# destroying the VM. Do not do this in production.
 
-# 가상 머신에 대한 지속적인 관리(N일차)가 필요한 경우 Chef 또는 Puppet과 같은 도구를 사용하는 것이 좋습니다. 이러한 도구는 개별 파일의 상태를 추적하고 올바른 구성으로 유지할 수 있습니다.
+# If you need ongoing management (Day N) of your virtual machines a tool such
+# as Chef or Puppet is a better choice. These tools track the state of
+# individual files and can keep them in the correct configuration.
 
-# 다음 단계를 수행합니다: 
-# 파일/의 모든 항목을 원격 VM에 동기화합니다. 
-# 스크립트에 대한 몇 가지 환경 변수를 설정합니다. 
-# 스크립트에 실행 권한을 추가합니다. 
-# deploy_app.sh 스크립트를 실행합니다.
+# Here we do the following steps:
+# Sync everything in files/ to the remote VM.
+# Set up some environment variables for our script.
+# Add execute permissions to our scripts.
+# Run the deploy_app.sh script.
 resource "null_resource" "configure-cat-app" {
   depends_on = [aws_eip_association.hashicat]
 
@@ -194,4 +196,10 @@ locals {
 resource "aws_key_pair" "hashicat" {
   key_name   = local.private_key_filename
   public_key = tls_private_key.hashicat.public_key_openssh
+}
+
+module "s3-bucket" {
+  source              = "cloudposse/s3-bucket/aws"
+  version             = "3.1.0"
+  s3_object_ownership = "BucketOwnerEnforced"
 }
