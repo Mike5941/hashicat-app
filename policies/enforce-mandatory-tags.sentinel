@@ -22,8 +22,7 @@ EC2InstancesWithoutEnvironmentTag =
         plan.filter_attribute_not_contains_list(allEC2Instances,
                         "tags", mandatory_tags, true)
 
-# Filter to EC2 instances that have the environment tag with an invalid value
-# Warnings will be printed for all violations since the last parameter is true
+# 잘못된 값을 가진 환경 태그가 있는 EC2 인스턴스로 필터링 마지막 매개 변수가 참이기 때문에 모든 위반에 대해 경고가 인쇄됩니다.
 EC2InstancesWithInvalidEnvironmentTag = plan.filter_attribute_map_key_contains_items_not_in_list(allEC2Instances,
                         "tags", "Environment", allowed_environments, true)
 
